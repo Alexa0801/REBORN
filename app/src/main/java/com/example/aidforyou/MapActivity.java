@@ -2,6 +2,7 @@ package com.example.aidforyou;
 
 import android.Manifest;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -18,6 +19,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SearchView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,6 +36,7 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.search.SearchBar;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,7 +44,7 @@ import java.util.List;
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
-
+     SearchBar searchBar;
     private ListView listView;
     private ArrayAdapter<String> arrayAdapter;
     private final String[] categories = {
@@ -49,6 +52,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             "Pharmacy and other health related", "Entertainment"
     };
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,7 +61,22 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         listView = findViewById(R.id.listView);
         arrayAdapter = new ArrayAdapter<String>(this, R.layout.list_customtext, categories);
         listView.setAdapter(arrayAdapter);
+        searchBar = findViewById(R.id.searchBar);
 
+        searchBar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                listView.setVisibility(View.VISIBLE);
+            }
+        });
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            // Get the selected item (optional)
+            String selectedItem = (String) parent.getItemAtPosition(position);
+            Toast.makeText(view.getContext(), "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
+
+            // Hide the ListView after selection
+            listView.setVisibility(View.GONE);
+        });
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
@@ -74,28 +93,28 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.search_menu, menu);
-
-        MenuItem menuItem = menu.findItem(R.id.search);
-        SearchView searchView = (SearchView) menuItem.getActionView();
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String s) {
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String s) {
-                arrayAdapter.getFilter().filter(s);
-                return false;
-            }
-        });
-
-        return super.onCreateOptionsMenu(menu);
-    }
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.search_menu, menu);
+//
+//        MenuItem menuItem = menu.findItem(R.id.search);
+//        SearchView searchView = (SearchView) menuItem.getActionView();
+//
+//        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+//            @Override
+//            public boolean onQueryTextSubmit(String s) {
+//                return false;
+//            }
+//
+//            @Override
+//            public boolean onQueryTextChange(String s) {
+//                arrayAdapter.getFilter().filter(s);
+//                return false;
+//            }
+//        });
+//
+//        return super.onCreateOptionsMenu(menu);
+//    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
