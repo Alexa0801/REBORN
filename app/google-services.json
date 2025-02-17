@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "41410009472",
+    "project_id": "reborn-4b51f",
+    "storage_bucket": "reborn-4b51f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:41410009472:android:f8e8233071ad2154f40965",
+        "android_client_info": {
+          "package_name": "com.example.aidforyou"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPN7ARCFDdZry3RQMpySTJsvsN50uodiY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

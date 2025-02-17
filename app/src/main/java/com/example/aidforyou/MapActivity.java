@@ -70,11 +70,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         });
         listView.setOnItemClickListener((parent, view, position, id) -> {
-            // Get the selected item (optional)
             String selectedItem = (String) parent.getItemAtPosition(position);
             Toast.makeText(view.getContext(), "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
 
-            // Hide the ListView after selection
             listView.setVisibility(View.GONE);
         });
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
