@@ -44,24 +44,30 @@ import java.util.List;
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
-     SearchBar searchBar;
+    SearchBar searchBar;
     private ListView listView;
+    private ListView institutionsListView;
+    private ListView entertainmentListView;
+    private ListView healthListView;
     private ArrayAdapter<String> arrayAdapter;
     private final String[] categories = {
             "Institutions", "Shops", "Restaurants",
             "Pharmacy and other health related", "Entertainment"
     };
 
-    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
         listView = findViewById(R.id.listView);
+        institutionsListView = findViewById(R.id.institutionsListView);
+        entertainmentListView = findViewById(R.id.entertainmentListView);
+        healthListView = findViewById(R.id.healthListView);
         arrayAdapter = new ArrayAdapter<String>(this, R.layout.list_customtext, categories);
         listView.setAdapter(arrayAdapter);
         searchBar = findViewById(R.id.searchBar);
+
 
         searchBar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -71,8 +77,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         });
         listView.setOnItemClickListener((parent, view, position, id) -> {
             String selectedItem = (String) parent.getItemAtPosition(position);
-            Toast.makeText(view.getContext(), "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
-
+            handleInput(selectedItem);
             listView.setVisibility(View.GONE);
         });
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
@@ -91,28 +96,26 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        getMenuInflater().inflate(R.menu.search_menu, menu);
-//
-//        MenuItem menuItem = menu.findItem(R.id.search);
-//        SearchView searchView = (SearchView) menuItem.getActionView();
-//
-//        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-//            @Override
-//            public boolean onQueryTextSubmit(String s) {
-//                return false;
-//            }
-//
-//            @Override
-//            public boolean onQueryTextChange(String s) {
-//                arrayAdapter.getFilter().filter(s);
-//                return false;
-//            }
-//        });
-//
-//        return super.onCreateOptionsMenu(menu);
-//    }
+    private void handleInput(String selectedItem){
+        switch (selectedItem){
+            case "Institutions":
+                Toast.makeText(this.getApplicationContext(), "Selected: Institutions", Toast.LENGTH_SHORT).show();
+                break;
+            case "Entertainment":
+                Toast.makeText(this.getApplicationContext(), "Selected: Entertainment", Toast.LENGTH_SHORT).show();
+                break;
+            case "Pharmacy and other health related":
+                Toast.makeText(this.getApplicationContext(), "Selected: PPharmacy and other health related" , Toast.LENGTH_SHORT).show();
+                break;
+            case "Shops":
+                Toast.makeText(this.getApplicationContext(), "Selected: Shops, no data for now", Toast.LENGTH_SHORT).show();
+                break;
+            case "Restaurants":
+                Toast.makeText(this.getApplicationContext(), "Selected: Restaurants, no data for now" , Toast.LENGTH_SHORT).show();
+                break;
+
+        }
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

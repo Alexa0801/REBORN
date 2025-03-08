@@ -14,9 +14,10 @@
 
     <com.google.android.material.search.SearchBar
         android:id="@+id/searchBar"
+        android:text="Search"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/rounded_rectangle"/>
+        android:backgroundTint="@color/quantum_white_100"/>
     <ListView
         android:background="@drawable/rectangle"
         android:paddingTop="60dp"
@@ -25,6 +26,34 @@
         android:id="@+id/listView"
         android:visibility="gone"
     />
+
+    <ListView
+        android:background="@drawable/rectangle"
+        android:paddingTop="60dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/institutionsListView"
+        android:visibility="gone"
+        />
+
+    <ListView
+        android:background="@drawable/rectangle"
+        android:paddingTop="60dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/entertainmentListView"
+        android:visibility="gone"
+        />
+
+    <ListView
+        android:background="@drawable/rectangle"
+        android:paddingTop="60dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/healthListView"
+        android:visibility="gone"
+        />
+
 
 
 
