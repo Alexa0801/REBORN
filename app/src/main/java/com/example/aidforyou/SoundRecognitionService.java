@@ -4,10 +4,15 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
 import android.media.AudioRecord;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -27,12 +32,18 @@ public class SoundRecognitionService extends Service {
     private static final String CHANNEL_ID = "AudioServiceChannel";
     private static final int NOTIFICATION_ID = 1;
     private static final float PROBABILITY_THRESHOLD = 0.3f;
+    private static final String SIREN_LABEL = "siren";  // The label for siren in your model
+    private static final String POLICE_LABEL = "police";  // The label for siren in your model
+    private static final String AMBULANCE_LABEL = "ambulance";  // The label for siren in your model
 
     private AudioClassifier classifier;
     private TensorAudio tensor;
     private AudioRecord record;
     private Timer timer;
     private TimerTask timerTask;
+    private Vibrator vibrator;
+    private CameraManager cameraManager;
+    private String cameraId;
 
     @Override
     public void onCreate() {
@@ -46,10 +57,17 @@ public class SoundRecognitionService extends Service {
             record = classifier.createAudioRecord();
             record.startRecording();
 
+            // Initialize vibrator and camera
+            vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+            cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+            cameraId = cameraManager.getCameraIdList()[0];  // Get the first camera (usually the rear one)
+
             startClassification();
         } catch (IOException e) {
             Log.e(TAG, "Error loading model", e);
             stopSelf();
+        } catch (CameraAccessException e) {
+            Log.e(TAG, "Error accessing camera", e);
         }
     }
 
@@ -80,6 +98,13 @@ public class SoundRecognitionService extends Service {
                 if (!finalOutput.isEmpty()) {
                     Category topCategory = finalOutput.get(0); // Get the top category
                     resultStr = topCategory.getLabel() + ": " + topCategory.getScore();
+
+                    // If the top label is "siren", trigger flashlight and vibration
+                    if (topCategory.getLabel().contains(SIREN_LABEL) || topCategory.getLabel().contains(POLICE_LABEL) || topCategory.getLabel().contains(AMBULANCE_LABEL)) {
+                        handleLantern();
+                        handleVibration();
+                    }
+                    flashlightOff();
                 }
 
                 Log.d(TAG, resultStr);
@@ -114,6 +139,34 @@ public class SoundRecognitionService extends Service {
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (notificationManager != null) {
             notificationManager.notify(NOTIFICATION_ID, notification);
+        }
+    }
+
+    private void handleLantern() {
+        try {
+            if (cameraManager != null) {
+                cameraManager.setTorchMode(cameraId, true);  // Turn on flashlight
+            }
+        } catch (CameraAccessException e) {
+            Log.e(TAG, "Error turning on flashlight", e);
+        }
+    }
+
+    private void flashlightOff() {
+        try {
+            if (cameraManager != null) {
+                cameraManager.setTorchMode(cameraId, false);  // Turn off flashlight
+            }
+        } catch (CameraAccessException e) {
+            Log.e(TAG, "Error turning off flashlight", e);
+        }
+    }
+
+    private void handleVibration() {
+        if (Build.VERSION.SDK_INT >= 26) {
+            vibrator.vibrate(VibrationEffect.createOneShot(2000, VibrationEffect.DEFAULT_AMPLITUDE));
+        } else {
+            vibrator.vibrate(500);  // For devices below Android 8.0
         }
     }
 

@@ -30,7 +30,7 @@
             android:exported="false" />
         <activity
             android:name=".SoundActivity"
-            android:exported="false"/>
+            android:exported="true"/>
         <activity
             android:name=".MapActivity"
             android:exported="false" />
@@ -44,10 +44,11 @@
             </intent-filter>
         </activity>
 
+
         <service
             android:name=".SoundRecognitionService"
             android:foregroundServiceType="microphone"
-            android:exported="false"/>
+            android:exported="true"/>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
