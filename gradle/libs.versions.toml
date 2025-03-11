@@ -12,6 +12,7 @@ playServicesLocation = "21.3.0"
 playServicesMaps = "19.0.0"
 googleGmsGoogleServices = "4.4.2"
 firebaseDatabase = "21.0.0"
+tensorflowLiteTaskAudio = "0.4.4"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -25,6 +26,8 @@ places = { module = "com.google.android.libraries.places:places", version.ref = 
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
+tensorflow-lite-support = { module = "org.tensorflow:tensorflow-lite-support", version.ref = "tensorflowLiteTaskAudio" }
+tensorflow-lite-task-audio = { module = "org.tensorflow:tensorflow-lite-task-audio", version.ref = "tensorflowLiteTaskAudio" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

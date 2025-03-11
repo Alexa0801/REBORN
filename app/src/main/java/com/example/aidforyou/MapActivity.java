@@ -18,13 +18,10 @@ import android.os.Bundle;
 
 import android.os.Handler;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.SearchView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -42,7 +39,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.search.SearchBar;
 import com.google.firebase.database.DataSnapshot;
@@ -50,9 +46,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-
-import org.checkerframework.checker.units.qual.A;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -203,16 +196,16 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private void handleInput(String selectedItem){
         switch (selectedItem){
             case "Institutions":
-                Toast.makeText(this.getApplicationContext(), "Selected: Institutions", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this.getApplicationContext(), "Selected: Institutions", Toast.LENGTH_SHORT).show();
                 Log.e("Institutions", institutions.toString());
                 institutionsClicked();
                 break;
             case "Entertainment":
-                Toast.makeText(this.getApplicationContext(), "Selected: Entertainment", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this.getApplicationContext(), "Selected: Entertainment", Toast.LENGTH_SHORT).show();
                 entertainmentClicked();
                 break;
             case "Pharmacy and other health related":
-                Toast.makeText(this.getApplicationContext(), "Selected: PPharmacy and other health related" , Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this.getApplicationContext(), "Selected: PPharmacy and other health related" , Toast.LENGTH_SHORT).show();
                 healthClicked();
                 break;
             case "Shops":
@@ -238,17 +231,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         for(DataSnapshot ds: snapshot.getChildren())
                         {
-                            if(Objects.equals(ds.getKey(), selectedInstitution)){
-                                double latitude = (double) ds.child("latitude").getValue();
-                                double longitude = (double) ds.child("longitude").getValue();
-                                LatLng latLng = new LatLng(latitude, longitude);
-                                googleMap.clear();
-                                currentLocation();
-                                googleMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).position(latLng));
-                                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
-                                handleOpenMaps(selectedInstitution, latLng);
-                            }
-
+                            getLocation(ds, selectedInstitution);
                         }
                     }
                     @Override
@@ -256,7 +239,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
                     }
                 });
-                Toast.makeText(MapActivity.this, "Clicked: " + selectedInstitution, Toast.LENGTH_SHORT).show();
+              //  Toast.makeText(MapActivity.this, "Clicked: " + selectedInstitution, Toast.LENGTH_SHORT).show();
                 institutionsListView.setVisibility(View.GONE);
             }
         });
@@ -277,17 +260,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         for(DataSnapshot ds: snapshot.getChildren())
                         {
-                            if(Objects.equals(ds.getKey(), selectedEntertainment)){
-                                double latitude = (double) ds.child("latitude").getValue();
-                                double longitude = (double) ds.child("longitude").getValue();
-                                LatLng latLng = new LatLng(latitude, longitude);
-                                googleMap.clear();
-                                currentLocation();
-                                googleMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).position(latLng));
-                                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
-                                handleOpenMaps(selectedEntertainment, latLng);
-                            }
-
+                            getLocation(ds, selectedEntertainment);
                         }
                     }
                     @Override
@@ -295,7 +268,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
                     }
                 });
-                Toast.makeText(MapActivity.this, "Clicked: " + selectedEntertainment, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(MapActivity.this, "Clicked: " + selectedEntertainment, Toast.LENGTH_SHORT).show();
                 entertainmentListView.setVisibility(View.GONE);
             }
         });
@@ -314,17 +287,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         for(DataSnapshot ds: snapshot.getChildren())
                         {
-                            if(Objects.equals(ds.getKey(), selectedHealth)){
-                                double latitude = (double) ds.child("latitude").getValue();
-                                double longitude = (double) ds.child("longitude").getValue();
-                                LatLng latLng = new LatLng(latitude, longitude);
-                                googleMap.clear();
-                                currentLocation();
-                                googleMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).position(latLng));
-                                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
-                                handleOpenMaps(selectedHealth, latLng);
-                            }
-
+                            getLocation(ds, selectedHealth);
                         }
                     }
                     @Override
@@ -332,10 +295,25 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
                     }
                 });
-                Toast.makeText(MapActivity.this, "Clicked: " + selectedHealth, Toast.LENGTH_SHORT).show();
+               // Toast.makeText(MapActivity.this, "Clicked: " + selectedHealth, Toast.LENGTH_SHORT).show();
                 healthListView.setVisibility(View.GONE);
             }
         });
+    }
+
+
+    private void getLocation(DataSnapshot ds, String selectedItem){
+        if(Objects.equals(ds.getKey(), selectedItem)){
+            double latitude = (double) ds.child("latitude").getValue();
+            double longitude = (double) ds.child("longitude").getValue();
+            LatLng latLng = new LatLng(latitude, longitude);
+            googleMap.clear();
+            currentLocation();
+            googleMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).position(latLng));
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
+            handleOpenMaps(selectedItem, latLng);
+        }
+
     }
 
     private void handleOpenMaps(String selectedItem, LatLng latLng){

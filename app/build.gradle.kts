@@ -45,5 +45,6 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     implementation(libs.play.services.maps)
     implementation (libs.places)
-
+    implementation(libs.tensorflow.lite.task.audio)
+    implementation(libs.tensorflow.lite.support)
 }

@@ -9,10 +9,14 @@
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
 
     <application
         android:allowBackup="true"
+        android:usesCleartextTraffic="true"
+        android:requestLegacyExternalStorage="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -39,11 +43,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-<!--        <service-->
-<!--            android:name=".SoundRecognitionService"-->
-<!--            android:foregroundServiceType="mediaProjection"-->
-<!--            android:enabled="true"-->
-<!--            android:exported="false"/>-->
+
+        <service
+            android:name=".SoundRecognitionService"
+            android:foregroundServiceType="microphone"
+            android:exported="false"/>
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDWu3wMlYhVQECF5mYinxaQVdr9kP-6co8" />
