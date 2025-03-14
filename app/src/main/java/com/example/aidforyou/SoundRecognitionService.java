@@ -33,8 +33,9 @@ public class SoundRecognitionService extends Service {
     private static final int NOTIFICATION_ID = 1;
     private static final float PROBABILITY_THRESHOLD = 0.3f;
     private static final String SIREN_LABEL = "siren";  // The label for siren in your model
-    private static final String POLICE_LABEL = "police";  // The label for siren in your model
-    private static final String AMBULANCE_LABEL = "ambulance";  // The label for siren in your model
+    private static final String POLICE_LABEL = "police";
+    private static final String AMBULANCE_LABEL = "ambulance";
+    private static final String EMERGENCY_LABEL = "Emergency";
 
     private AudioClassifier classifier;
     private TensorAudio tensor;
@@ -100,7 +101,8 @@ public class SoundRecognitionService extends Service {
                     resultStr = topCategory.getLabel() + ": " + topCategory.getScore();
 
                     // If the top label is "siren", trigger flashlight and vibration
-                    if (topCategory.getLabel().contains(SIREN_LABEL) || topCategory.getLabel().contains(POLICE_LABEL) || topCategory.getLabel().contains(AMBULANCE_LABEL)) {
+                    if (topCategory.getLabel().contains(SIREN_LABEL) || topCategory.getLabel().contains(POLICE_LABEL) ||
+                            topCategory.getLabel().contains(AMBULANCE_LABEL) || topCategory.getLabel().contains(EMERGENCY_LABEL)) {
                         handleLantern();
                         handleVibration();
                     }
