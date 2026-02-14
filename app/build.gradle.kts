@@ -40,11 +40,13 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.play.services.location)
     implementation(libs.firebase.database)
+    implementation(libs.vision.common)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation(libs.play.services.maps)
-    implementation (libs.places)
+    implementation(libs.places)
     implementation(libs.tensorflow.lite.task.audio)
     implementation(libs.tensorflow.lite.support)
-}
+    implementation(libs.text.recognition)
+    implementation("com.google.mlkit:object-detection:17.0.2")}
