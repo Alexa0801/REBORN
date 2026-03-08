@@ -1,155 +1,123 @@
 package com.example.aidforyou;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.provider.MediaStore;
+import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
+import androidx.annotation.Nullable;
 
+import com.example.aidforyou.helpers.MLImageHelperActivity;
 import com.google.mlkit.vision.common.InputImage;
-import com.google.mlkit.vision.objects.DetectedObject;
-import com.google.mlkit.vision.objects.ObjectDetection;
-import com.google.mlkit.vision.objects.ObjectDetector;
-import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions;
+import com.google.mlkit.vision.label.ImageLabel;
+import com.google.mlkit.vision.label.ImageLabeler;
+import com.google.mlkit.vision.label.ImageLabeling;
+import com.google.mlkit.vision.label.defaults.ImageLabelerOptions;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
+public class CameraActivity extends MLImageHelperActivity {
 
-public class CameraActivity extends AppCompatActivity {
-
-    private TextView textViewResult;
-    private ImageView imageView;
-
-    private Uri photoUri;
-    private File photoFile;
-
-    private final ActivityResultLauncher<String> requestCameraPermission =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
-                if (granted) {
-                    openCameraFullRes();
-                } else {
-                    textViewResult.setText("Camera permission denied.");
-                }
-            });
-
-    private final ActivityResultLauncher<Uri> takePictureLauncher =
-            registerForActivityResult(new ActivityResultContracts.TakePicture(), success -> {
-                if (success && photoFile != null) {
-                    Bitmap bitmap = decodeDownsampledBitmap(photoFile.getAbsolutePath(), 1280, 1280);
-                    imageView.setImageBitmap(bitmap);
-                    runObjectRecognition(bitmap);
-                } else {
-                    textViewResult.setText("No image captured.");
-                }
-            });
-
+    private ImageLabeler imageLabeler;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_camera);
+        imageLabeler = ImageLabeling.getClient(new ImageLabelerOptions.Builder()
+                .setConfidenceThreshold(0.7f)
+                .build());imageLabeler = ImageLabeling.getClient(new ImageLabelerOptions.Builder()
+                .setConfidenceThreshold(0.7f)
+                .build());
+    }
 
-        textViewResult = findViewById(R.id.textViewResult);
-        imageView = findViewById(R.id.imageView);
-        Button buttonCaptureImage = findViewById(R.id.buttonCaptureImage);
-
-        buttonCaptureImage.setOnClickListener(v -> {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                    != PackageManager.PERMISSION_GRANTED) {
-                requestCameraPermission.launch(Manifest.permission.CAMERA);
-            } else {
-                openCameraFullRes();
+    @Override
+    protected void runDetection(Bitmap bitmap) {
+        // aici vine logica ta MLKit sau orice procesare imagine
+        InputImage inputImage = InputImage.fromBitmap(bitmap, 0);
+        imageLabeler.process(inputImage).addOnSuccessListener(imageLabels -> {
+            StringBuilder sb = new StringBuilder();
+            for (ImageLabel label : imageLabels) {
+                sb.append(label.getText()).append(": ").append(label.getConfidence()).append("\n");
             }
+            if (imageLabels.isEmpty()) {
+                getOutputTextView().setText("Could not classify!!");
+            } else {
+                getOutputTextView().setText(sb.toString());
+            }
+        }).addOnFailureListener(e -> {
+            e.printStackTrace();
         });
     }
 
-    private void openCameraFullRes() {
-        try {
-            photoFile = createTempImageFile();
-            photoUri = FileProvider.getUriForFile(
-                    this,
-                    getPackageName() + ".fileprovider",
-                    photoFile
-            );
-            takePictureLauncher.launch(photoUri);
-        } catch (IOException e) {
-            textViewResult.setText("Failed to create image file: " + e.getMessage());
-        }
-    }
-
-    private File createTempImageFile() throws IOException {
-        File cacheDir = new File(getCacheDir(), "images");
-        if (!cacheDir.exists()) cacheDir.mkdirs();
-        return File.createTempFile("capture_", ".jpg", cacheDir);
-    }
-
-    private Bitmap decodeDownsampledBitmap(String path, int reqWidth, int reqHeight) {
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(path, options);
-
-        int inSampleSize = 1;
-        int height = options.outHeight;
-        int width = options.outWidth;
-
-        while ((height / inSampleSize) > reqHeight || (width / inSampleSize) > reqWidth) {
-            inSampleSize *= 2;
+    @Override
+    public void onPickImage(android.view.View view) {
+        Intent intent;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            // Document picker recomandat pentru compatibilitate
+            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("image/*");
+        } else {
+            intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
         }
 
-        options.inJustDecodeBounds = false;
-        options.inSampleSize = inSampleSize;
-        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        return BitmapFactory.decodeFile(path, options);
+        startActivityForResult(intent, PICK_IMAGE_ACTIVITY_REQUEST_CODE);
     }
 
-    private void runObjectRecognition(Bitmap bitmap) {
-        // Better for “detect objects” + “label them”
-        ObjectDetectorOptions options = new ObjectDetectorOptions.Builder()
-                .setDetectorMode(ObjectDetectorOptions.SINGLE_IMAGE_MODE)
-                .enableMultipleObjects()
-                .enableClassification()
-                .build();
-
-        ObjectDetector detector = ObjectDetection.getClient(options);
-
-        // If your bitmap might be rotated, you need the correct rotation degrees.
-        // For this flow (TakePicture -> decode file), rotation may still come from EXIF.
-        // We'll keep 0 for now; for perfect results, read EXIF and pass rotation.
-        InputImage image = InputImage.fromBitmap(bitmap, 0);
-
-        detector.process(image)
-                .addOnSuccessListener(this::processObjectRecognitionResult)
-                .addOnFailureListener(e -> textViewResult.setText("Error: " + e.getMessage()));
+    @Override
+    public void onTakeImage(android.view.View view) {
+        // folosește implementarea din MLImageHelperActivity
+        super.onTakeImage(view);
     }
 
-    private void processObjectRecognitionResult(List<DetectedObject> detectedObjects) {
-        StringBuilder sb = new StringBuilder();
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
-        for (DetectedObject obj : detectedObjects) {
-            if (obj.getLabels().isEmpty()) {
-                sb.append("Object detected (unclassified)\n");
-            } else {
-                for (DetectedObject.Label label : obj.getLabels()) {
-                    sb.append(label.getText())
-                            .append(" (")
-                            .append(Math.round(label.getConfidence() * 100))
-                            .append("%)\n");
+        if ((requestCode == PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE)
+                && resultCode == RESULT_OK) {
+
+            Bitmap bitmap = null;
+
+            if (requestCode == PICK_IMAGE_ACTIVITY_REQUEST_CODE && data != null) {
+                Uri uri = data.getData();
+                if (uri != null) {
+                    bitmap = loadFromUri(uri);
                 }
+            } else if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
+                bitmap = getCapturedImage();
+                bitmap = rotateIfRequiredSafe(bitmap);
+            }
+
+            if (bitmap != null) {
+                // Asigură-te că ImageView-ul este layout-uit
+                Bitmap finalBitmap = bitmap;
+                getInputImageView().post(() -> {
+                    getInputImageView().setImageBitmap(finalBitmap);
+                    runDetection(finalBitmap);
+                });
+            } else {
+                Toast.makeText(this, "Nu s-a putut încărca imaginea!", Toast.LENGTH_SHORT).show();
             }
         }
+    }
 
-        if (sb.length() == 0) sb.append("No objects detected.");
-        textViewResult.setText(sb.toString());
+    private Bitmap rotateIfRequiredSafe(Bitmap bitmap) {
+        try {
+            return super.rotateImage(bitmap, getOrientation(photoFile));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return bitmap;
+        }
+    }
+
+    private int getOrientation(java.io.File file) {
+        try {
+            android.media.ExifInterface exif = new android.media.ExifInterface(file.getAbsolutePath());
+            return exif.getAttributeInt(android.media.ExifInterface.TAG_ORIENTATION, android.media.ExifInterface.ORIENTATION_NORMAL);
+        } catch (Exception e) {
+            return android.media.ExifInterface.ORIENTATION_NORMAL;
+        }
     }
 }

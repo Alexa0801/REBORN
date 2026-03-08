@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <cache-path name="images" path="images/" />
+    <!-- Permite FileProvider să acceseze fișiere din getExternalFilesDir(Environment.DIRECTORY_PICTURES) -->
+    <external-files-path
+        name="external_files"
+        path="Pictures/" />
 </paths>
